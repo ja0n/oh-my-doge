@@ -100,7 +100,9 @@ function map.generatePlayField()
 			print(props.mnemonic)
 			print(props.origin)
 			print("----")
-			table.insert(mapProps, {file = props.file, mnemonic = props.mnemonic, image = love.graphics.newImage("props/"..props.file), origins = string.split_(props.origin, "|")})
+			image = love.graphics.newImage("props/"..props.file)
+			origins = string.split_(props.origin, "|")
+			table.insert(mapProps, {file = props.file, mnemonic = props.mnemonic, image = image, origins = origins})
 		end
 	else
 		print("No props found on current map!")
@@ -164,14 +166,14 @@ function map.generatePlayField()
 
 	print("Player props: =-=-=-=-=-=-=-=")
 	if mapDec.players ~= nil then
-		props = mapDec.players[1]
+		local props = mapDec.players[1]
+		local image = love.graphics.newImage("props/"..props.file)
+		local origins = string.split_(props.origin, "|")
+		local position = string.split_(props.position, "|")
 		print(props.file)
 		print(props.mnemonic)
 		print(props.origin)
 		print("----")
-		image = love.graphics.newImage("props/"..props.file)
-		origins = string.split_(props.origin, "|")
-		position = string.split_(props.position, "|")
 		table.insert(map.players, {texture = props.file, mnemonic = props.mnemonic, image = image, origins = origins, position = position})
 	else
 		print("No players found on current map!")
@@ -196,13 +198,17 @@ function map.drawGround(xOff, yOff, size)
 	--Apply lighting
 	love.graphics.setColor(tonumber(mapLighting[1]), tonumber(mapLighting[2]), tonumber(mapLighting[3]), 255)
 
+	love.graphics.print("X: "..math.floor(x).." Y: "..math.floor(y), 0, 64)
+	love.graphics.print("TileWidth: "..tileWidth.."TileHeight"..tileHeight, 200, 164)
 	--Draw the flat ground layer for the map, without elevation or props.
 	for i in ipairs(mapPositions) do
 		for j=1,#mapPositions[i], 1 do
 			local xPos = mapPositions[i][j][1].x * (tileWidth*zoomLevel) + i
 			local yPos = mapPositions[i][j][1].y * (tileWidth*zoomLevel) + j
 			local xPos, yPos = map.toIso(xPos, yPos)
-			love.graphics.draw(mapPositions[i][j][1].texture,xPos+xOff, yPos+yOff, 0, size, size, mapPositions[i][j][1].texture:getWidth()/2, mapPositions[i][j][1].texture:getHeight()/2 )
+
+			local texture = mapPositions[i][j][1].texture
+			love.graphics.draw(texture,xPos+xOff, yPos+yOff, 0, size, size, texture:getWidth()/2, texture:getHeight()/2 )
 		end
 	end
 
