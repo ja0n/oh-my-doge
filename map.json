@@ -1,0 +1,54 @@
+{
+  "textures": [
+    {
+      "file": "ground.png",
+      "mnemonic": "ground",
+      "offset": "0|15"
+    }
+  ],
+  "players": [
+    {
+        "file": "blood.png",
+        "mnemonic": "player",
+        "origin": "0|0",
+        "position": "1|1"
+    }
+  ],
+  "props":
+[
+    {
+        "file": "blood.png",
+        "mnemonic": "blood",
+        "origin": "108|59"
+    },
+    {
+        "file": "ground_crack.png",
+        "mnemonic": "ground_crack",
+        "origin": "108|59"
+    },
+    {
+        "file": "wall-1.png",
+        "mnemonic": "wall-1",
+        "origin": "30|204"
+    }
+],
+  "data":
+[     
+	[["ground"],["ground"],["ground"],["ground"],["ground"],["ground"],["ground"],["ground"]],
+	[["ground"],["ground"],["ground"],["ground"],["ground"],["ground", "wall-1"],["ground"],["ground"]],
+	[["ground"],["ground"],["ground"],["ground", "ground_crack"],["ground"],["ground"],["ground"],["ground"]],
+	[["ground"],["ground"],["ground"],["ground"],["ground"],["ground", "wall-1"],["ground"],["ground"]],
+	[["ground"],["ground"],["ground"],["ground"],["ground"],["ground"],["ground"],["ground"]],
+	[["ground"],["ground"],["ground", "wall-1"],["ground"],["ground"],["ground", "wall-1"],["ground"],["ground"]],
+	[["ground", "blood"],["ground"],["ground"],["ground"],["ground"],["ground"],["ground"],["ground"]],
+	[["ground"],["ground"],["ground", "wall-1"],["ground"],["ground"],["ground"],["ground"],["ground"]]
+],
+
+  "general": [
+    {
+      "name": "Map name",
+      "version": "string with map version",
+      "lighting": "255|255|255"
+    }
+  ]
+}
