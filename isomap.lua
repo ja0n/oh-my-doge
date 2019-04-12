@@ -21,6 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.]]--
 
 local json = require("dkjson")
+local anim8 = require 'anim8'
 --TODO: Load dkjson relative to mapDecoder's path.
 
 
@@ -179,7 +180,6 @@ function map.generatePlayField()
 						table.insert(mapPropsfield, propField)
                         table.insert(mapPositions[colunas][linhas][1].objects, propField)
 
-                        print('occupy', props.occupy)
                         for i,v in ipairs(props.occupy or {}) do
                             local x = colunas + v[2]
                             local y = linhas + v[1]
@@ -202,12 +202,34 @@ function map.generatePlayField()
 		local props = mapDec.players[1]
 		local image = love.graphics.newImage("props/"..props.file)
 		local origins = string.split_(props.origin, "|")
-		local position = string.split_(props.position, "|")
+        local position = string.split_(props.position, "|")
+		local sprite = love.graphics.newImage("sprites/"..props.sprite)
+        local g = anim8.newGrid(154, 100, sprite:getWidth(), sprite:getHeight())
+        local animation_left = anim8.newAnimation(g('1-5',2), 0.2)
+        local animation_up = animation_left:clone()
+        animation_up:flipH()
+        local animation_down = anim8.newAnimation(g('1-5',1), 0.2)
+        local animation_right = animation_down:clone()
+        animation_right:flipH()
+        local animations = {}
+        animations["up"] = animation_up
+        animations["down"] = animation_down
+        animations["left"] = animation_left
+        animations["right"] = animation_right
 		print(props.file)
 		print(props.mnemonic)
 		print(props.origin)
 		print("----")
-		table.insert(map.players, {texture = props.file, mnemonic = props.mnemonic, image = image, origins = origins, position = position})
+		table.insert(map.players, {
+            texture = props.file,
+            mnemonic = props.mnemonic,
+            sprite = sprite,
+            animations = animations,
+            currentAnimation=nil,
+            image = image,
+            origins = origins,
+            position = position
+        })
 	else
 		print("No players found on current map!")
 	end
@@ -247,6 +269,12 @@ function map.drawGround(xOff, yOff, size)
 
 end
 
+function map.setPlayerAnimation(animation)
+    local player = map.players[1]
+    player.currentAnimation = animation
+end
+
+
 function map.drawPlayers(xOff, yOff, size)
 	assert(xOff)
 	assert(yOff)
@@ -257,10 +285,14 @@ function map.drawPlayers(xOff, yOff, size)
 	local x = player.position[1]
 	local y = player.position[2]
 
+    xOff = xOff + 20
 	local xPos = x * (tileWidth*zoomLevel) + x
 	local yPos = y * (tileWidth*zoomLevel) + y
-	local xPos, yPos = map.toIso(xPos, yPos)
-	love.graphics.draw(player.image,xPos+xOff, yPos+yOff, 0, size, size, player.image:getWidth()/2, player.image:getHeight()/2 )
+    local xPos, yPos = map.toIso(xPos, yPos)
+    -- love.graphics.draw(player.image,xPos+xOff, yPos+yOff, 0, size, size, player.image:getWidth()/2, player.image:getHeight()/2 )
+    if player.currentAnimation then
+        player.currentAnimation:draw(player.sprite,xPos+xOff, yPos+yOff, 0, size, size, player.image:getWidth()/2, player.image:getHeight()/2 )
+    end
 end
 
 function map.pushAction(action)
@@ -275,19 +307,28 @@ function map.pushAction(action)
 	if action == "left" then
 		finalX = math.floor(playerX) - 1
 		finalY = math.floor(playerY)
+        map.setPlayerAnimation(player.animations["left"])
 	end
 	if action == "right" then
 		finalX = math.floor(playerX + 1)
 		finalY = math.floor(playerY)
+        map.setPlayerAnimation(player.animations["right"])
 	end
-	if action == "up" then
+    if action == "up" then
 		finalX = math.floor(playerX)
 		finalY = math.floor(playerY) - 1
+        map.setPlayerAnimation(player.animations["up"])
 	end
 	if action == "down" then
 		finalX = math.floor(playerX)
-		finalY = math.floor(playerY) + 1
-	end
+        finalY = math.floor(playerY) + 1
+        map.setPlayerAnimation(player.animations["down"])
+    end
+    
+    if (player.currentAnimation) then
+        player.currentAnimation:pauseAtStart()
+    end
+
 
 	map.finalX = finalX
 	map.finalY = finalY
@@ -304,11 +345,18 @@ function map.runAction(dt)
 	if action == nil then
 		return nil
 	end
-	local velocity = 1
+	local velocity = 0.9
 
 	local player = map.players[1]
 	local playerX = tonumber(player.position[1])
-	local playerY = tonumber(player.position[2])
+    local playerY = tonumber(player.position[2])
+    local currentAnimation = player.currentAnimation
+    -- player.currentAnimation.gotoFrame(1)
+
+    if player.currentAnimation then
+        player.currentAnimation:resume()
+        player.currentAnimation:update(dt)
+    end
 
 	local mapLength = 8
 	local invalid = finalX < 1 or finalX > mapLength or finalY < 1 or finalY > mapLength
@@ -318,6 +366,9 @@ function map.runAction(dt)
 		map.action = nil
 		finalX = playerX
 		finalY = playerY
+        if player.currentAnimation then
+            player.currentAnimation:pauseAtStart()
+        end
 		return false
 	end
 	local blocked = table.getn(position[1].objects) > 0
@@ -325,6 +376,9 @@ function map.runAction(dt)
 		map.action = nil
 		finalX = playerX
 		finalY = playerY
+        if player.currentAnimation then
+            player.currentAnimation:pauseAtStart()
+        end
 		return false
 	end
 

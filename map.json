@@ -9,6 +9,7 @@
   "players": [
     {
         "file": "blood.png",
+        "sprite": "dog.png",
         "mnemonic": "player",
         "origin": "0|0",
         "position": "1|1"
@@ -30,7 +31,7 @@
         "file": "wall-1.png",
         "mnemonic": "wall-1",
         "origin": "30|204",
-        "occupy": ["0|-1"]
+        "occupy": ["0|0","0|-1"]
     }
 ],
   "data":
