@@ -30,7 +30,7 @@
         "file": "wall-1.png",
         "mnemonic": "wall-1",
         "origin": "30|204",
-        "occupy": ["0|1"]
+        "occupy": ["0|-1"]
     }
 ],
   "data":

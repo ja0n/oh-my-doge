@@ -42,6 +42,18 @@ local objectListSize = 0
 
 local zoomLevel = 1
 
+function split(value)
+	return string.split_(value, "|")
+end
+
+function fmap(func, array)
+    local new_array = {}
+    for i,v in ipairs(array) do
+      new_array[i] = func(v)
+    end
+    return new_array
+end
+
 function map.decodeJson(filename)
 	assert(filename, "Filename is nil!")
 	if not love.filesystem.isFile(filename) then error("Given filename is not a file! Is it a directory? Does it exist?") end
@@ -101,8 +113,15 @@ function map.generatePlayField()
 			print(props.origin)
 			print("----")
 			image = love.graphics.newImage("props/"..props.file)
-			origins = string.split_(props.origin, "|")
-			table.insert(mapProps, {file = props.file, mnemonic = props.mnemonic, image = image, origins = origins})
+            origins = split(props.origin)
+            occupy = fmap(split, props.occupy or {})
+			table.insert(mapProps, {
+                file = props.file,
+                mnemonic = props.mnemonic,
+                image = image,
+                origins = origins,
+                occupy = occupy,
+            })
 		end
 	else
 		print("No props found on current map!")
@@ -158,7 +177,18 @@ function map.generatePlayField()
 						local propField = {texture=props.image, x=linhas, y=colunas, offX=props.origins[1], offY=props.origins[2], mapY = pY, mapX = pX, colX = colX, colY = colY, width = props.image:getWidth(), height = props.image:getHeight(), alpha = false}
 						-- local propField = [];
 						table.insert(mapPropsfield, propField)
-						table.insert(mapPositions[colunas][linhas][1].objects, propField)
+                        table.insert(mapPositions[colunas][linhas][1].objects, propField)
+
+                        print('occupy', props.occupy)
+                        for i,v in ipairs(props.occupy or {}) do
+                            local x = colunas + v[2]
+                            local y = linhas + v[1]
+                            print('occupy', x, y)
+                            if x < 8 and y < 8 then
+                                table.insert(mapPositions[x][y][1].objects, propField)
+                            end
+                        end
+						--Add to occupy positions
 					end
 				end
 
