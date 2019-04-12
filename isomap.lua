@@ -127,7 +127,7 @@ function map.generatePlayField()
 						if mapPositions[colunas][linhas] == nil then
 							mapPositions[colunas][linhas] = {}
 						end
-						table.insert(mapPositions[colunas][linhas], {texture = groundTexture.image, x=xPos, y=yPos})
+						table.insert(mapPositions[colunas][linhas], {texture = groundTexture.image, x=xPos, y=yPos, objects={}})
 					end
 
 				end
@@ -155,7 +155,10 @@ function map.generatePlayField()
 						colX = linhas * (tileWidth*zoomLevel)
 						colY = colunas * (tileWidth*zoomLevel)
 						colX, colY = map.toIso(colX, colY)
-						table.insert(mapPropsfield,{texture=props.image, x=linhas, y=colunas, offX=props.origins[1], offY=props.origins[2], mapY = pY, mapX = pX, colX = colX, colY = colY, width = props.image:getWidth(), height = props.image:getHeight(), alpha = false})
+						local propField = {texture=props.image, x=linhas, y=colunas, offX=props.origins[1], offY=props.origins[2], mapY = pY, mapX = pX, colX = colX, colY = colY, width = props.image:getWidth(), height = props.image:getHeight(), alpha = false}
+						-- local propField = [];
+						table.insert(mapPropsfield, propField)
+						table.insert(mapPositions[colunas][linhas][1].objects, propField)
 					end
 				end
 
@@ -228,6 +231,84 @@ function map.drawPlayers(xOff, yOff, size)
 	local yPos = y * (tileWidth*zoomLevel) + y
 	local xPos, yPos = map.toIso(xPos, yPos)
 	love.graphics.draw(player.image,xPos+xOff, yPos+yOff, 0, size, size, player.image:getWidth()/2, player.image:getHeight()/2 )
+end
+
+function map.pushAction(action)
+	local player = map.players[1]
+	local playerX = tonumber(player.position[1])
+	local playerY = tonumber(player.position[2])
+
+	if (map.action) then
+		return nil
+	end
+
+	if action == "left" then
+		finalX = math.floor(playerX) - 1
+		finalY = math.floor(playerY)
+	end
+	if action == "right" then
+		finalX = math.floor(playerX + 1)
+		finalY = math.floor(playerY)
+	end
+	if action == "up" then
+		finalX = math.floor(playerX)
+		finalY = math.floor(playerY) - 1
+	end
+	if action == "down" then
+		finalX = math.floor(playerX)
+		finalY = math.floor(playerY) + 1
+	end
+
+	map.finalX = finalX
+	map.finalY = finalY
+	map.action = action
+end
+
+finalX = nil
+finalY = nil
+map.action = nil
+
+function map.runAction(dt)
+	local action = map.action
+
+	if action == nil then
+		return nil
+	end
+	local velocity = 1
+
+	local player = map.players[1]
+	local playerX = tonumber(player.position[1])
+	local playerY = tonumber(player.position[2])
+
+	local mapLength = 8
+	local invalid = finalX < 1 or finalX > mapLength or finalY < 1 or finalY > mapLength
+	local position = mapPositions[finalY][finalX]
+	-- local invalid = false
+	if invalid or (playerX == finalX and playerY == finalY) then
+		map.action = nil
+		finalX = playerX
+		finalY = playerY
+		return false
+	end
+	local blocked = table.getn(position[1].objects) > 0
+	if blocked then
+		map.action = nil
+		finalX = playerX
+		finalY = playerY
+		return false
+	end
+
+	if playerX > finalX then
+		player.position[1] = math.max(finalX, playerX - dt * velocity)
+	else
+		player.position[1] = math.min(finalX, playerX + dt * velocity)
+	end
+
+	if playerY > finalY then
+		player.position[2] = math.max(finalY, playerY - dt * velocity)
+	else
+		player.position[2] = math.min(finalY, playerY + dt * velocity)
+	end
 end
 
 function map.drawObjects(xOff, yOff, size)
