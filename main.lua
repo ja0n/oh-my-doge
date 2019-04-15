@@ -1,8 +1,14 @@
 isomap = require ("isomap")
 isGrabbing = false
+math.randomseed( os.time() )
 
 x = 0
 y = 0
+
+local player = nil
+local player2 = nil
+local player3 = nil
+local actions = {'up', 'down', 'left', 'right'}
 
 function love.load()
 	--Variables
@@ -22,7 +28,8 @@ function love.load()
 
 	--Generate map from JSON file (loads assets and creates tables)
 	isomap.generatePlayField()
-	isomap.pushAction('right')
+	player = isomap.players[1]
+	isomap.pushAction(player, 'right')
 end
 
 function love.update(dt)
@@ -32,17 +39,28 @@ function love.update(dt)
 	-- player
 	local player = isomap.players[1]
 	if love.keyboard.isDown("w") then
-		 isomap.pushAction('up')
+		 isomap.pushAction(player, 'up')
 	end
 	if love.keyboard.isDown("s") then
-		 isomap.pushAction('down')
+		 isomap.pushAction(player, 'down')
 	end
 	if love.keyboard.isDown("a") then
-		 isomap.pushAction('left')
+		 isomap.pushAction(player, 'left')
 	end
 	if love.keyboard.isDown("d") then
-		 isomap.pushAction('right')
+		 isomap.pushAction(player, 'right')
 	end
+
+
+	local i = 2
+	repeat
+		local player = isomap.players[i]
+		if player.action == nil then
+			isomap.pushAction(player, actions[math.random(#actions)])
+		end
+		i = i + 1
+	until i > #isomap.players
+
 	zoomL = lerp(zoomL, zoom, 0.05*(dt*300))
 
 	if isGrabbing and false then
@@ -69,6 +87,7 @@ function love.draw()
 	isomap.drawPlayers(vx, vy, zoomL)
 	isomap.drawObjects(vx, vy, zoomL)
 
+	local player = isomap.players[1]
 	info = love.graphics.getStats()
 	love.graphics.print("FPS: "..love.timer.getFPS())
 	love.graphics.print("Draw calls: "..info.drawcalls, 0, 12)
@@ -77,11 +96,11 @@ function love.draw()
 	love.graphics.print("Is grabbing: "..tostring(isGrabbing), 0, 48)
 	love.graphics.print("X: "..math.floor(x).." Y: "..math.floor(y), 0, 64)
 	love.graphics.print("vX: "..math.floor(vx).." vY: "..math.floor(vy), 0, 78)
-	love.graphics.print("posX: "..isomap.players[1].position[1], 100, 100)
-	love.graphics.print("posY: "..isomap.players[1].position[2], 100, 120)
-	love.graphics.print("finX: "..isomap.finalX, 100, 140)
-	love.graphics.print("finY: "..isomap.finalY, 100, 160)
-	love.graphics.print("action: "..tostring(isomap.action), 100, 180)
+	love.graphics.print("posX: "..player.position[1], 100, 100)
+	love.graphics.print("posY: "..player.position[2], 100, 120)
+	love.graphics.print("finX: "..player.final[1], 100, 140)
+	love.graphics.print("finY: "..player.final[2], 100, 160)
+	love.graphics.print("action: "..tostring(player.action), 100, 180)
 end
 
 function love.wheelmoved(x, y)

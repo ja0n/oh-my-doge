@@ -13,6 +13,38 @@
         "mnemonic": "player",
         "origin": "0|0",
         "position": "1|1"
+    },
+    {
+        "file": "blood.png",
+        "sprite": "dog.png",
+        "mnemonic": "friend",
+        "origin": "0|0",
+        "position": "2|2"
+    },
+    {
+        "file": "blood.png",
+        "sprite": "dog.png",
+        "mnemonic": "friend",
+        "origin": "0|0",
+        "position": "6|4"
+    },
+    {
+        "file": "blood.png",
+        "mnemonic": "zombie",
+        "origin": "108|59",
+        "position": "7|4"
+    },
+    {
+        "file": "blood.png",
+        "mnemonic": "zombie",
+        "origin": "108|59",
+        "position": "7|7"
+    },
+    {
+        "file": "blood.png",
+        "mnemonic": "zombie",
+        "origin": "108|59",
+        "position": "1|7"
     }
   ],
   "props":
