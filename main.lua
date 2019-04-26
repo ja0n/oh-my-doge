@@ -86,6 +86,7 @@ function love.draw()
 	isomap.drawGround(vx, vy, zoomL)
 	isomap.drawPlayers(vx, vy, zoomL)
 	isomap.drawObjects(vx, vy, zoomL)
+	isomap.drawMouseTarget(vx, vy, zoomL)
 
 	local player = isomap.players[1]
 	info = love.graphics.getStats()

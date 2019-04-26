@@ -299,6 +299,7 @@ function map.drawGround(xOff, yOff, size)
 	love.graphics.print("X: "..math.floor(x).." Y: "..math.floor(y), 0, 64)
 	love.graphics.print("TileWidth: "..tileWidth.."TileHeight"..tileHeight, 200, 164)
 	--Draw the flat ground layer for the map, without elevation or props.
+	map.mouseTarget = nil
 	for i in ipairs(mapPositions) do
 		for j=1,#mapPositions[i], 1 do
 			local xPos = mapPositions[i][j][1].x * (tileWidth*zoomLevel) + i
@@ -307,9 +308,40 @@ function map.drawGround(xOff, yOff, size)
 
 			local texture = mapPositions[i][j][1].texture
 			love.graphics.draw(texture,xPos+xOff, yPos+yOff, 0, size, size, texture:getWidth()/2, texture:getHeight()/2 )
+
+			local x, y = love.mouse.getPosition()
+
+			xPos = xPos + xOff - texture:getWidth()/2 * size
+			yPos = yPos + yOff - texture:getHeight()/2 * size
+
+			local isTarget = (x >= xPos and x <= xPos + texture:getWidth() * size )
+				and (y >= yPos and y <= yPos + texture:getHeight() * size)
+			if isTarget then
+				map.mouseTarget = {i, j}
+			end
 		end
 	end
 
+end
+
+local texture = love.graphics.newImage("props/blood.png")
+function map.drawMouseTarget(xOff, yOff, size)
+	local mouseTarget = map.mouseTarget
+	zoomLevel = size
+
+	if not mouseTarget then
+		return nil
+	end
+
+	-- local mapPosition = map.mouseTarget
+	local i = mouseTarget[1]
+	local j = mouseTarget[2]
+	print('mouseTarget:', i, j)
+	local mapPosition = mapPositions[i][j][1]
+	local xPos = mapPosition.x * (tileWidth*zoomLevel)
+	local yPos = mapPosition.y * (tileWidth*zoomLevel)
+	local xPos, yPos = map.toIso(xPos, yPos)
+	love.graphics.draw(texture,xPos+xOff, yPos+yOff, 0, size, size, texture:getWidth()/2, texture:getHeight()/2 )
 end
 
 function map.drawPlayers(xOff, yOff, size)
@@ -488,9 +520,6 @@ function map.getTile2DCoordinates(i, j)
 	return xP, yP
 end
 
-function map.getMouseTarget()
-
-end
 
 function map.getPlayfieldWidth()
 	return mapPlayfieldWidthInTiles
