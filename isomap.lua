@@ -22,6 +22,7 @@ SOFTWARE.]]--
 
 local json = require("dkjson")
 local anim8 = require 'anim8'
+require('helpers')
 --TODO: Load dkjson relative to mapDecoder's path.
 
 
@@ -175,7 +176,20 @@ function map.generatePlayField()
 						colX = linhas * (tileWidth*zoomLevel)
 						colY = colunas * (tileWidth*zoomLevel)
 						colX, colY = map.toIso(colX, colY)
-						local propField = {texture=props.image, x=linhas, y=colunas, offX=props.origins[1], offY=props.origins[2], mapY = pY, mapX = pX, colX = colX, colY = colY, width = props.image:getWidth(), height = props.image:getHeight(), alpha = false}
+						local propField = {
+							texture=props.image,
+							x=linhas,
+							y=colunas,
+							offX=props.origins[1],
+							offY=props.origins[2],
+							mapY = pY,
+							mapX = pX,
+							colX = colX,
+							colY = colY,
+							width = props.image:getWidth(),
+							height = props.image:getHeight(),
+							alpha = false
+						}
 						-- local propField = [];
 						table.insert(mapPropsfield, propField)
                         table.insert(mapPositions[colunas][linhas][1].objects, propField)
@@ -209,7 +223,9 @@ function map.generatePlayField()
 			local final = string.split_(props.position, "|")
 			local sprite = nil
 			local animations = {}
-			if props.sprite then
+			props.velocity = 0.9
+			if props.sprite and props.sprite == 'dog.png' then
+				props.velocity = 0.9
 				sprite = love.graphics.newImage("sprites/"..props.sprite)
 				local g = anim8.newGrid(154, 100, sprite:getWidth(), sprite:getHeight())
 				local animation_left = anim8.newAnimation(g('1-5',2), 0.2)
@@ -223,12 +239,28 @@ function map.generatePlayField()
 				animations["left"] = animation_left
 				animations["right"] = animation_right
 			end
+			if props.sprite and props.sprite == 'zombie.png' then
+				props.velocity = 0.3
+				sprite = love.graphics.newImage("sprites/"..props.sprite)
+				local g = anim8.newGrid(129, 110, sprite:getWidth(), sprite:getHeight())
+				local animation_right = anim8.newAnimation(g('1-5',1), 0.2)
+				local animation_down = animation_right:clone()
+				animation_down:flipH()
+				local animation_left = anim8.newAnimation(g('1-5',2), 0.2)
+				local animation_up = animation_left:clone()
+				animation_up:flipH()
+				animations["up"] = animation_up
+				animations["down"] = animation_down
+				animations["left"] = animation_left
+				animations["right"] = animation_right
+			end
 			print(props.file)
 			print(props.mnemonic)
 			print(props.origin)
 			print("----")
 			table.insert(map.players, {
 				texture = props.file,
+				velocity = props.velocity,
 				mnemonic = props.mnemonic,
 				sprite = sprite,
 				animations = animations,
@@ -333,7 +365,7 @@ function map.pushAction(player, action)
         finalY = math.floor(playerY) + 1
 		player.currentAnimation = player.animations["down"]
     end
-    
+
     if (player.currentAnimation) then
         player.currentAnimation:pauseAtStart()
     end
@@ -345,17 +377,16 @@ function map.pushAction(player, action)
 end
 
 function map.runAction(dt)
-	local velocity = 0.9
-
 	-- local player = map.players[1]
 	local player = nil
 	for i,player in ipairs(map.players) do
-		if player.action then 
+		if player.action then
 			local playerX = tonumber(player.position[1])
 			local playerY = tonumber(player.position[2])
 			local finalX = tonumber(player.final[1])
 			local finalY = tonumber(player.final[2])
 			local currentAnimation = player.currentAnimation
+			local velocity = player.velocity
 			-- player.currentAnimation.gotoFrame(1)
 
 			if player.currentAnimation then
@@ -409,7 +440,19 @@ function map.drawObjects(xOff, yOff, size)
 	if #mapPropsfield > objectListSize then
 		for i=objectListSize+1, #mapPropsfield do
 			for j=1, objectListSize do
-				if CheckCollision(mapPropsfield[j].colX, mapPropsfield[j].colY, mapPropsfield[j].width, mapPropsfield[j].height, mapPropsfield[i].colX, mapPropsfield[i].colY, mapPropsfield[i].width, mapPropsfield[i].height) and mapPropsfield[i].y < mapPropsfield[j].y and mapPropsfield[i].x < mapPropsfield[j].x then
+				if mapPropsfield[i].y < mapPropsfield[j].y and
+					mapPropsfield[i].x < mapPropsfield[j].x and
+					CheckCollision(
+						mapPropsfield[j].colX,
+						mapPropsfield[j].colY,
+						mapPropsfield[j].width,
+						mapPropsfield[j].height,
+						mapPropsfield[i].colX,
+						mapPropsfield[i].colY,
+						mapPropsfield[i].width,
+						mapPropsfield[i].height
+					)
+					then
 					mapPropsfield[j].alpha = true
 				end
 			end
@@ -438,11 +481,15 @@ function map.drawObjects(xOff, yOff, size)
 end
 
 
-function map.getTileCoordinates2D(i, j)
+function map.getTile2DCoordinates(i, j)
 	local xP = mapPositions[i][j][1].x * (tileWidth*zoomLevel)
 	local yP = mapPositions[i][j][1].y * (tileWidth*zoomLevel)
 	xP, yP = map.toIso(xP, yP)
 	return xP, yP
+end
+
+function map.getMouseTarget()
+
 end
 
 function map.getPlayfieldWidth()
@@ -466,7 +513,7 @@ function map.toIso(x, y)
 	assert(x, "Position X is nil!")
 	assert(y, "Position Y is nil!")
 
-	newX = x-y
+	newX = x - y
 	newY = (x + y)/2
 	return newX, newY
 end
@@ -501,71 +548,6 @@ function map.removeObject(x, y)
 	if #mapPositions[x][y] > 1 then
 		table.remove(mapPositions[x][y], #mapPositions[x][y])
 	end
-end
-
-
---This next function had the underscore added to avoid collisions with
---any other possible split function the user may want to use.
-function string:split_(sSeparator, nMax, bRegexp)
-	assert(sSeparator ~= '')
-	assert(nMax == nil or nMax >= 1)
-
-	local aRecord = {}
-
-	if self:len() > 0 then
-		local bPlain = not bRegexp
-		nMax = nMax or -1
-
-		local nField, nStart = 1, 1
-		local nFirst,nLast = self:find(sSeparator, nStart, bPlain)
-		while nFirst and nMax ~= 0 do
-			aRecord[nField] = self:sub(nStart, nFirst-1)
-			nField = nField+1
-			nStart = nLast+1
-			nFirst,nLast = self:find(sSeparator, nStart, bPlain)
-			nMax = nMax-1
-		end
-		aRecord[nField] = self:sub(nStart)
-	end
-
-	return aRecord
---Credit goes to JoanOrdinas @ lua-users.org
-end
-
-function spairs(t, order)
-    -- collect the keys
-    local keys = {}
-    for k in pairs(t) do keys[#keys+1] = k end
-
-    -- if order function given, sort by it by passing the table and keys a, b,
-    -- otherwise just sort the keys
-    if order then
-        table.sort(keys, function(a,b) return order(t, a, b) end)
-    else
-        table.sort(keys)
-    end
-
-    -- return the iterator function
-    local i = 0
-    return function()
-        i = i + 1
-        if keys[i] then
-            return keys[i], t[keys[i]]
-        end
-    end
-		--https://stackoverflow.com/questions/15706270/sort-a-table-in-lua
-		--Function "spairs" by Michal Kottman.
-end
-
--- Collision detection function;
--- Returns true if two boxes overlap, false if they don't;
--- x1,y1 are the top-left coords of the first box, while w1,h1 are its width and height;
--- x2,y2,w2 & h2 are the same, but for the second box.
-function CheckCollision(x1,y1,w1,h1, x2,y2,w2,h2)
-  return x1 < x2+w2 and
-         x2 < x1+w1 and
-         y1 < y2+h2 and
-         y2 < y1+h1
 end
 
 return map
