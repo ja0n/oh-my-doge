@@ -114,12 +114,19 @@ function love.wheelmoved(x, y)
 	if zoom < 0.1 then zoom = 0.1 end
 end
 
+local texture = love.graphics.newImage("props/blood.png")
 function love.mousepressed(currentX, currentY, button, istouch, presses)
 	if button == 3 then
 		lastPosX = currentX
 		lastPosY = currentY
 		isGrabbing = true
 		love.mouse.setGrabbed(true)
+	end
+	if button == 1 then
+		if isomap.mouseTarget then
+			isomap.insertNewObject(texture, isomap.mouseTarget[1], isomap.mouseTarget[2], 108, 59)
+			print('mouseTarget:', isomap.mouseTarget[2], isomap.mouseTarget[1])
+		end
 	end
 end
 

@@ -336,7 +336,6 @@ function map.drawMouseTarget(xOff, yOff, size)
 	-- local mapPosition = map.mouseTarget
 	local i = mouseTarget[1]
 	local j = mouseTarget[2]
-	print('mouseTarget:', i, j)
 	local mapPosition = mapPositions[i][j][1]
 	local xPos = mapPosition.x * (tileWidth*zoomLevel)
 	local yPos = mapPosition.y * (tileWidth*zoomLevel)
