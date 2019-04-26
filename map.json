@@ -30,20 +30,23 @@
     },
     {
         "file": "blood.png",
+        "sprite": "zombie.png",
         "mnemonic": "zombie",
-        "origin": "108|59",
+        "origin": "268|80",
         "position": "7|4"
     },
     {
         "file": "blood.png",
+        "sprite": "zombie.png",
         "mnemonic": "zombie",
-        "origin": "108|59",
+        "origin": "268|80",
         "position": "7|7"
     },
     {
         "file": "blood.png",
+        "sprite": "zombie.png",
         "mnemonic": "zombie",
-        "origin": "108|59",
+        "origin": "268|80",
         "position": "1|7"
     }
   ],
