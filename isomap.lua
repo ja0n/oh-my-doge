@@ -334,14 +334,27 @@ function map.drawMouseTarget(xOff, yOff, size)
 		return nil
 	end
 
-	-- local mapPosition = map.mouseTarget
-	local i = mouseTarget[1]
-	local j = mouseTarget[2]
-	local mapPosition = mapPositions[i][j][1]
-	local xPos = mapPosition.x * (tileWidth*zoomLevel)
-	local yPos = mapPosition.y * (tileWidth*zoomLevel)
-	local xPos, yPos = map.toIso(xPos, yPos)
+	local player = map.players[1]
+	local path = map.getTargetPath(player.position, mouseTarget)
+
+	local position = nil
+	for i, position in ipairs(path) do
+		local i = position[1]
+		local j = position[2]
+		local mapPosition = mapPositions[i][j][1]
+		local xPos = mapPosition.x * (tileWidth*zoomLevel)
+		local yPos = mapPosition.y * (tileWidth*zoomLevel)
+		local xPos, yPos = map.toIso(xPos, yPos)
+		map.drawTexture(texture, xPos, yPos, xOff, yOff, size)
+	end
+end
+
+function map.drawTexture(texture, xPos, yPos, xOff, yOff, size)
 	love.graphics.draw(texture,xPos+xOff, yPos+yOff, 0, size, size, texture:getWidth()/2, texture:getHeight()/2 )
+end
+
+function map.getTargetPath(source, target)
+	return {target}
 end
 
 function map.drawPlayers(xOff, yOff, size)
