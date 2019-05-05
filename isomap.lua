@@ -177,6 +177,7 @@ function map.generatePlayField()
 						colY = colunas * (tileWidth*zoomLevel)
 						colX, colY = map.toIso(colX, colY)
 						local propField = {
+							mnemonic=props.mnemonic,
 							texture=props.image,
 							x=linhas,
 							y=colunas,
