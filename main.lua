@@ -1,4 +1,4 @@
-isomap = require ("isomap")
+engine = require ('engine')
 isGrabbing = false
 math.randomseed( os.time() )
 
@@ -24,42 +24,42 @@ function love.load()
 
 
 	--Decode JSON map file
-	isomap.decodeJson("map.json")
+	engine.decodeJson("map.json")
 
 	--Generate map from JSON file (loads assets and creates tables)
-	isomap.generatePlayField()
-	player = isomap.players[1]
-	isomap.pushAction(player, 'right')
+	engine.generatePlayField()
+	player = engine.players[1]
+	engine.pushAction(player, 'right')
 end
 
 function love.update(dt)
-	isomap.runAction(dt)
+	engine.runAction(dt)
 	-- require("lovebird").update()
 
 	-- player
-	local player = isomap.players[1]
+	local player = engine.players[1]
 	if love.keyboard.isDown("w") then
-		 isomap.pushAction(player, 'up')
+		 engine.pushAction(player, 'up')
 	end
 	if love.keyboard.isDown("s") then
-		 isomap.pushAction(player, 'down')
+		 engine.pushAction(player, 'down')
 	end
 	if love.keyboard.isDown("a") then
-		 isomap.pushAction(player, 'left')
+		 engine.pushAction(player, 'left')
 	end
 	if love.keyboard.isDown("d") then
-		 isomap.pushAction(player, 'right')
+		 engine.pushAction(player, 'right')
 	end
 
 
 	local i = 2
 	repeat
-		local player = isomap.players[i]
+		local player = engine.players[i]
 		if player.action == nil then
-			isomap.pushAction(player, actions[math.random(#actions)])
+			engine.pushAction(player, actions[math.random(#actions)])
 		end
 		i = i + 1
-	until i > #isomap.players
+	until i > #engine.players
 
 	zoomL = lerp(zoomL, zoom, 0.05*(dt*300))
 
@@ -83,12 +83,12 @@ function love.draw()
 		vy = y + (currentY - lastPosY)
 	end
 
-	isomap.drawGround(vx, vy, zoomL)
-	isomap.drawPlayers(vx, vy, zoomL)
-	isomap.drawObjects(vx, vy, zoomL)
-	isomap.drawMouseTarget(vx, vy, zoomL)
+	engine.drawGround(vx, vy, zoomL)
+	engine.drawPlayers(vx, vy, zoomL)
+	engine.drawObjects(vx, vy, zoomL)
+	engine.drawMouseTarget(vx, vy, zoomL)
 
-	local player = isomap.players[1]
+	local player = engine.players[1]
 	info = love.graphics.getStats()
 	love.graphics.print("FPS: "..love.timer.getFPS())
 	love.graphics.print("Draw calls: "..info.drawcalls, 0, 12)
@@ -123,9 +123,9 @@ function love.mousepressed(currentX, currentY, button, istouch, presses)
 		love.mouse.setGrabbed(true)
 	end
 	if button == 1 then
-		if isomap.mouseTarget then
-			isomap.insertNewObject(texture, isomap.mouseTarget[1], isomap.mouseTarget[2], 108, 59)
-			print('mouseTarget:', isomap.mouseTarget[2], isomap.mouseTarget[1])
+		if engine.mouseTarget then
+			engine.insertNewObject(texture, engine.mouseTarget[1], engine.mouseTarget[2], 108, 59)
+			print('mouseTarget:', engine.mouseTarget[2], engine.mouseTarget[1])
 		end
 	end
 end
@@ -141,7 +141,7 @@ function love.mousereleased(currentX, currentY, button, istouch, presses)
 	end
 end
 
-function lerp(a, b, rate) --EMPLOYEE OF THE MONTH
+function lerp(a, b, rate)
 	local result = (1-rate)*a + rate*b
 	return result
 end
