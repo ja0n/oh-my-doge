@@ -13,9 +13,7 @@ function parseMap(map)
 
     for line in map:gmatch"[^\r\n]+" do
         local lineData = {}
-            print('y', line)
         for col in line:gmatch"." do
-            print('x', col)
             local position = {
                 ['x'] = #lineData + 1,
                 ['y'] = #data + 1,
@@ -33,7 +31,6 @@ function getPosition(x, y, mapData)
     if y < 1 or y > #mapData then return nil end
     if x < 1 or x > #mapData[y] then return nil end
 
-    print('getPosition', x, y)
     return mapData[y][x]
 end
 
@@ -43,8 +40,6 @@ function getNeighbors(position, mapData)
     local x = position['x']
     local y = position['y']
 
-    print('getNeighbors', x, y)
-
     return table.filter(
         {
             -- { ['direction'] = 'top', getPosition(x, y - 1, mapData),
@@ -53,27 +48,31 @@ function getNeighbors(position, mapData)
             getPosition(x, y + 1, mapData),
             getPosition(x - 1, y, mapData),
         },
-        function (v) return v ~= nil end
+        function (v) return v ~= nil and v['value'] ~= 'x' end
     )
 end
 
 function findPath(mapData, source, getNeighbors, target)
     local queue = {source}
-    local visited = {}
+    local came_from = {}
 
     while #queue ~= 0 do
         local current = table.remove(queue)
 
         if target(current) then
-            return {current}
+            local path = {}
+            while current ~= source do
+                table.insert(path, 1, current)
+                current = came_from[current]
+            end
+            return path
         end
-
 
         local neighbors = getNeighbors(current, mapData)
         for index, neighbor in ipairs(neighbors) do
-            if not visited[neighbor] then
+            if not came_from[neighbor] then
                 table.insert(queue, neighbor)
-                visited[neighbor] = true
+                came_from[neighbor] = current 
             end
         end
     end
@@ -81,23 +80,25 @@ end
 
 
 map = [[
-aaaaaaaaa
-aaaa1aaaa
-aaa402aaa
-aaaa3aaaa
-aaaaaaaaa
+.........
+xxxxxxx..
+....0.x..
+......x..
+.........
 ]]
 mapData = parseMap(map)
-position = getPosition(1, 1, mapData)
-print('getPosition', position['value'])
-print('getPosdddddition', getPosition(-1, -1, mapData))
-print('mapp', mapData)
+source = getPosition(1, 1, mapData)
+print('getPosition', source['value'])
+-- print('getPosdddddition', getPosition(-1, -1, mapData))
 path = findPath(
     mapData,
-    position,
+    source,
     getNeighbors,
     function (current) return current['value'] == '0' end
 )
 
-path = path[1]
-print('findPath (x, y)', path['x'], path['y'])
+print(map)
+
+for index, position in ipairs(path) do
+    print('findPath (x, y)', position['x'], position['y'])
+end
