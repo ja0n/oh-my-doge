@@ -1,6 +1,7 @@
 local json = require('dkjson')
 local anim8 = require('anim8')
 require('helpers')
+require('pathfinding')
 
 engine = {}
 mapDec = {}
@@ -126,7 +127,13 @@ function engine.generatePlayField()
             if mapPositions[colunas][linhas] == nil then
               mapPositions[colunas][linhas] = {}
             end
-            table.insert(mapPositions[colunas][linhas], {texture = groundTexture.image, x=xPos, y=yPos, objects={}})
+            local mapPosition = {
+              texture = groundTexture.image,
+              x=xPos,
+              y=yPos,
+              objects={}
+            }
+            table.insert(mapPositions[colunas][linhas], mapPosition)
           end
 
         end
@@ -171,6 +178,7 @@ function engine.generatePlayField()
             }
             -- local propField = [];
             table.insert(mapPropsfield, propField)
+
       table.insert(mapPositions[colunas][linhas][1].objects, propField)
 
       for i,v in ipairs(props.occupy or {}) do
@@ -303,7 +311,7 @@ function engine.drawGround(xOff, yOff, size)
 
 end
 
-local texture = love.graphics.newImage("props/blood.png")
+local texture = love.graphics.newImage("props/highlight.png")
 function engine.drawMouseTarget(xOff, yOff, size)
   local mouseTarget = engine.mouseTarget
   zoomLevel = size
@@ -316,14 +324,16 @@ function engine.drawMouseTarget(xOff, yOff, size)
   local path = engine.getTargetPath(player.position, mouseTarget)
 
   local position = nil
-  for i, position in ipairs(path) do
-    local i = position[1]
-    local j = position[2]
-    local mapPosition = mapPositions[i][j][1]
-    local xPos = mapPosition.x * (tileWidth*zoomLevel)
-    local yPos = mapPosition.y * (tileWidth*zoomLevel)
-    local xPos, yPos = engine.toIso(xPos, yPos)
-    engine.drawTexture(texture, xPos, yPos, xOff, yOff, size)
+  for i, mapPosition in ipairs(path) do
+    -- local i = position[1]
+    -- local j = position[2]
+    -- local mapPosition = mapPositions[i][j][1]
+    if mapPosition then
+      local xPos = mapPosition.x * (tileWidth*zoomLevel)
+      local yPos = mapPosition.y * (tileWidth*zoomLevel)
+      local xPos, yPos = engine.toIso(xPos, yPos)
+      engine.drawTexture(texture, xPos, yPos, xOff, yOff, size)
+    end
   end
 end
 
@@ -331,8 +341,60 @@ function engine.drawTexture(texture, xPos, yPos, xOff, yOff, size)
   love.graphics.draw(texture,xPos+xOff, yPos+yOff, 0, size, size, texture:getWidth()/2, texture:getHeight()/2 )
 end
 
+local function getPosition(x, y)
+  -- if x < 1 or x > #mapPositions then return nil end
+  -- if y < 1 or y > #mapPositions[x] then return nil end
+  -- return mapPositions[x][y][1]
+  if y < 1 or y > #mapPositions then return nil end
+  if x < 1 or x > #mapPositions[y] then return nil end
+  print('getPosition', x, y)
+
+  return mapPositions[y][x][1]
+end
+
+engine.getPosition = getPosition
+
+function engine.getNeighbors(position)
+  local source = position
+  assert(source, "No position find for this source")
+  local x = source.x
+  local y = source.y
+
+  return table.filter(
+    {
+      -- { ['direction'] = 'top', getPosition(x, y - 1, mapData),
+      getPosition(x, y - 1),
+      getPosition(x + 1, y),
+      getPosition(x, y + 1),
+      getPosition(x - 1, y),
+    },
+    function (position)
+      return position ~= nil and #position.objects == 0
+    end
+  )
+end
+
 function engine.getTargetPath(source, target)
-  return { target }
+  local targetX = target[1]
+  local targetY = target[2]
+  target = getPosition(targetY, targetX)
+
+  local player = engine.players[1]
+
+  if player.action then
+    return {target}
+  end
+
+  local sourceX = source[1]
+  local sourceY = source[2]
+  source = getPosition(sourceX, sourceY)
+
+	return findPath(
+		mapPositions,
+		source,
+		engine.getNeighbors,
+		function (current) return current == target end
+	)
 end
 
 function engine.drawPlayers(xOff, yOff, size)
@@ -561,7 +623,22 @@ function engine.insertNewObject(textureI, isoX, isoY, offXR, offYR)
   local colY = isoY * (tileWidth*zoomLevel)
   colX, colY = engine.toIso(colX, colY)
   --Insert object on map
-  table.insert(mapPropsfield, {texture=textureI, x=isoY, y=isoX+0.001, offX=offXR, offY = offYR, mapY = ry, mapX = rx, colX = colX, colY = colY, width = textureI:getWidth(), height = textureI:getHeight(), alpha = false})
+  local propField = {
+    texture=textureI,
+    x=isoY,
+    y=isoX+0.001,
+    offX=offXR,
+    offY = offYR,
+    mapY = ry,
+    mapX = rx,
+    colX = colX,
+    colY = colY,
+    width = textureI:getWidth(),
+    height = textureI:getHeight(),
+    alpha = false,
+  }
+  table.insert(mapPropsfield, propField)
+  table.insert(mapPositions[isoX][isoY][1].objects, propField)
 end
 
 function engine.removeObject(x, y)

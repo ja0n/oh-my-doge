@@ -1,3 +1,13 @@
+table.filter = function(t, filterIter)
+  local out = {}
+
+  for k, v in pairs(t) do
+   if filterIter(v, k, t) then table.insert(out, v) end
+  end
+
+  return out
+end
+
 function findPath(mapData, source, getNeighbors, target)
   local queue = {source}
   local came_from = {}
@@ -22,4 +32,6 @@ function findPath(mapData, source, getNeighbors, target)
       end
     end
   end
+
+  return {}
 end

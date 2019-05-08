@@ -1,15 +1,5 @@
 require('pathfinding')
 
-table.filter = function(t, filterIter)
-  local out = {}
- 
-  for k, v in pairs(t) do
-   if filterIter(v, k, t) then table.insert(out, v) end
-  end
- 
-  return out
-end
-
 function parseMap(map)
   local data = {}
 
@@ -68,7 +58,7 @@ print('getPosition', source['value'])
 path = findPath(
   mapData,
   source,
-  getNeighbors,
+  function (position) return getNeighbors(position, mapData) end,
   function (current) return current['value'] == '0' end
 )
 

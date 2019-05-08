@@ -53,6 +53,11 @@
   "props":
 [
     {
+        "file": "highlight.png",
+        "mnemonic": "highlight",
+        "origin": "0|15"
+    },
+    {
         "file": "blood.png",
         "mnemonic": "blood",
         "origin": "108|59"
