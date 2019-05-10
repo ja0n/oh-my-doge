@@ -35,12 +35,13 @@ function getNeighbors(position, mapData)
   return table.filter(
     {
       -- { ['direction'] = 'top', getPosition(x, y - 1, mapData),
-      getPosition(x, y - 1, mapData),
-      getPosition(x + 1, y, mapData),
-      getPosition(x, y + 1, mapData),
-      getPosition(x - 1, y, mapData),
+      { direction = 'up', position = getPosition(x, y - 1, mapData) },
+      { direction = 'right', position = getPosition(x + 1, y, mapData) },
+      { direction = 'down', position = getPosition(x, y + 1, mapData) },
+      { direction = 'left', position = getPosition(x - 1, y, mapData) },
     },
-    function (v) return v ~= nil and v['value'] ~= 'x' end
+    function (node) 
+      return node.position ~= nil and node.position.value ~= 'x' end
   )
 end
 
@@ -64,6 +65,7 @@ path = findPath(
 
 print(map)
 
-for index, position in ipairs(path) do
-  print('findPath (x, y)', position['x'], position['y'])
+for index, node in ipairs(path) do
+  local position = node.position
+  print('findPath (x, y)', position.x, position.y, node.direction)
 end

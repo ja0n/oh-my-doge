@@ -32,25 +32,27 @@ function love.load()
 	engine.pushAction(player, 'right')
 end
 
-function love.update(dt)
-	engine.runAction(dt)
-	-- require("lovebird").update()
-
+function love.keypressed(key)
 	-- player
 	local player = engine.players[1]
-	if love.keyboard.isDown("w") then
+	if key == 'w' then
 		 engine.pushAction(player, 'up')
 	end
-	if love.keyboard.isDown("s") then
+	if key == 's' then
 		 engine.pushAction(player, 'down')
 	end
-	if love.keyboard.isDown("a") then
+	if key == 'a' then
 		 engine.pushAction(player, 'left')
 	end
-	if love.keyboard.isDown("d") then
+	if key == 'd' then
 		 engine.pushAction(player, 'right')
 	end
 
+end
+
+function love.update(dt)
+	engine.runAction(dt)
+	-- require("lovebird").update()
 
 	local i = 2
 	repeat
@@ -123,9 +125,18 @@ function love.mousepressed(currentX, currentY, button, istouch, presses)
 		love.mouse.setGrabbed(true)
 	end
 	if button == 1 then
-		if engine.mouseTarget then
+		if not engine.mouseTarget then return nil end
+
+		if love.keyboard.isDown('lshift') then
 			engine.insertNewObject(texture, engine.mouseTarget[1], engine.mouseTarget[2], 108, 59)
 			print('mouseTarget:', engine.mouseTarget[2], engine.mouseTarget[1])
+		else
+			local path = engine.getTargetPath(player.position, engine.mouseTarget)
+			local player = engine.players[1]
+			for index, node in ipairs(path) do
+				print('direction', direction)
+				engine.pushAction(player, node.direction)
+			end
 		end
 	end
 end

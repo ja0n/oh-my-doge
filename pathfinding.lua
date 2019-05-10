@@ -11,6 +11,7 @@ end
 function findPath(mapData, source, getNeighbors, target)
   local queue = {source}
   local came_from = {}
+  local direction_from = {}
 
   while #queue ~= 0 do
     local current = table.remove(queue)
@@ -18,7 +19,8 @@ function findPath(mapData, source, getNeighbors, target)
     if target(current) then
       local path = {}
       while current ~= source do
-        table.insert(path, 1, current)
+        direction = direction_from[current]
+        table.insert(path, 1, { direction = direction, position = current })
         current = came_from[current]
       end
       return path
@@ -26,9 +28,10 @@ function findPath(mapData, source, getNeighbors, target)
 
     local neighbors = getNeighbors(current, mapData)
     for index, neighbor in ipairs(neighbors) do
-      if not came_from[neighbor] then
-        table.insert(queue, neighbor)
-        came_from[neighbor] = current 
+      if not came_from[neighbor.position] then
+        table.insert(queue, neighbor.position)
+        came_from[neighbor.position] = current
+        direction_from[neighbor.position] = neighbor.direction
       end
     end
   end

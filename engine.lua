@@ -256,6 +256,8 @@ function engine.generatePlayField()
         origins = origins,
         position = position,
         final = final,
+        action = nil,
+        action_queue = {},
       })
     end
     print(engine.players[1].final[1])
@@ -321,13 +323,10 @@ function engine.drawMouseTarget(xOff, yOff, size)
   end
 
   local player = engine.players[1]
-  local path = engine.getTargetPath(player.position, mouseTarget)
+  local path = engine.getTargetPath(player.final, mouseTarget)
 
-  local position = nil
-  for i, mapPosition in ipairs(path) do
-    -- local i = position[1]
-    -- local j = position[2]
-    -- local mapPosition = mapPositions[i][j][1]
+  for i, node in ipairs(path) do
+    local mapPosition = node.position
     if mapPosition then
       local xPos = mapPosition.x * (tileWidth*zoomLevel)
       local yPos = mapPosition.y * (tileWidth*zoomLevel)
@@ -359,12 +358,13 @@ function engine.getNeighbors(position)
   return table.filter(
     {
       -- { ['direction'] = 'top', getPosition(x, y - 1, mapData),
-      getPosition(x, y - 1),
-      getPosition(x + 1, y),
-      getPosition(x, y + 1),
-      getPosition(x - 1, y),
+      { direction = 'up', position = getPosition(x, y - 1) },
+      { direction = 'right', position = getPosition(x + 1, y) },
+      { direction = 'down', position = getPosition(x, y + 1) },
+      { direction = 'left', position = getPosition(x - 1, y) },
     },
-    function (position)
+    function (neighbor)
+      position = neighbor.position
       return position ~= nil and #position.objects == 0
     end
   )
@@ -415,7 +415,12 @@ function engine.drawPlayers(xOff, yOff, size)
   end
 end
 
+
 function engine.pushAction(player, action)
+  table.insert(player.action_queue, action)
+end
+
+function engine.executeAction(player, action)
   -- local player = engine.players[1]
   local playerX = tonumber(player.position[1])
   local playerY = tonumber(player.position[2])
@@ -461,6 +466,13 @@ function engine.runAction(dt)
   -- local player = engine.players[1]
   local player = nil
   for i,player in ipairs(engine.players) do
+    if not player.action then
+      -- player.action = table.remove(player.action_queue, 1)
+      local nextAction = table.remove(player.action_queue, 1)
+      if nextAction then
+        engine.executeAction(player, nextAction)
+      end
+    end
     if player.action then
       local playerX = tonumber(player.position[1])
       local playerY = tonumber(player.position[2])
