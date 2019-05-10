@@ -342,12 +342,8 @@ function engine.drawTexture(texture, xPos, yPos, xOff, yOff, size)
 end
 
 local function getPosition(x, y)
-  -- if x < 1 or x > #mapPositions then return nil end
-  -- if y < 1 or y > #mapPositions[x] then return nil end
-  -- return mapPositions[x][y][1]
   if y < 1 or y > #mapPositions then return nil end
   if x < 1 or x > #mapPositions[y] then return nil end
-  print('getPosition', x, y)
 
   return mapPositions[y][x][1]
 end
