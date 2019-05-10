@@ -260,8 +260,6 @@ function engine.generatePlayField()
         action_queue = {},
       })
     end
-    print(engine.players[1].final[1])
-    print('---333')
   else
     print("No players found on current map!")
   end
@@ -322,8 +320,13 @@ function engine.drawMouseTarget(xOff, yOff, size)
     return nil
   end
 
+
   local player = engine.players[1]
-  local path = engine.getTargetPath(player.final, mouseTarget)
+  engine.drawPath(xOff, yOff, zoom, player.final, mouseTarget)
+end
+
+function engine.drawPath(xOff, yOff, zoom, from, to)
+  local path = engine.getTargetPath(from, to)
 
   for i, node in ipairs(path) do
     local mapPosition = node.position
@@ -334,6 +337,7 @@ function engine.drawMouseTarget(xOff, yOff, size)
       engine.drawTexture(texture, xPos, yPos, xOff, yOff, size)
     end
   end
+
 end
 
 function engine.drawTexture(texture, xPos, yPos, xOff, yOff, size)
