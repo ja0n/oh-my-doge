@@ -29,7 +29,7 @@ function findPath(mapData, source, getNeighbors, target)
     local neighbors = getNeighbors(current, mapData)
     for index, neighbor in ipairs(neighbors) do
       if not came_from[neighbor.position] then
-        table.insert(queue, neighbor.position)
+        table.insert(queue, 1, neighbor.position)
         came_from[neighbor.position] = current
         direction_from[neighbor.position] = neighbor.direction
       end

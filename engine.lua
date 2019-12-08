@@ -289,12 +289,12 @@ function engine.drawGround(xOff, yOff, size)
   engine.mouseTarget = nil
   for i in ipairs(mapPositions) do
     for j=1,#mapPositions[i], 1 do
-      local xPos = mapPositions[i][j][1].x * (tileWidth*zoomLevel) + i
-      local yPos = mapPositions[i][j][1].y * (tileWidth*zoomLevel) + j
+      local xPos = mapPositions[i][j][1].x * (tileWidth * zoomLevel)
+      local yPos = mapPositions[i][j][1].y * (tileWidth * zoomLevel)
       local xPos, yPos = engine.toIso(xPos, yPos)
 
       local texture = mapPositions[i][j][1].texture
-      love.graphics.draw(texture,xPos+xOff, yPos+yOff, 0, size, size, texture:getWidth()/2, texture:getHeight()/2 )
+      engine.drawTexture(texture, xPos, yPos, xOff, yOff, size)
 
       local x, y = love.mouse.getPosition()
 
@@ -311,37 +311,65 @@ function engine.drawGround(xOff, yOff, size)
 
 end
 
-local texture = love.graphics.newImage("props/highlight.png")
-function engine.drawMouseTarget(xOff, yOff, size)
+local bloodTexture = love.graphics.newImage("props/blood.png")
+
+function engine.drawMouseTarget(xOff, yOff, zoom)
   local mouseTarget = engine.mouseTarget
-  zoomLevel = size
+  zoomLevel = zoom
 
   if not mouseTarget then
     return nil
   end
 
+  if love.keyboard.isDown('lshift') then
+    local texture = bloodTexture
+    local y = mouseTarget[1]
+    local x = mouseTarget[2]
+    print('mouseTarget:', y, x)
+  else
+    local player = engine.players[1]
+    engine.drawPath(xOff, yOff, zoom, player.final, mouseTarget)
+  end
 
-  local player = engine.players[1]
-  engine.drawPath(xOff, yOff, zoom, player.final, mouseTarget)
 end
+
+function engine.drawTextureToPosition(xOff, yOff, zoom, x, y, texture)
+  local mapPosition = mapPositions[y][x][1]
+  local xPos = mapPosition.x * (tileWidth*zoomLevel)
+  local yPos = mapPosition.y * (tileWidth*zoomLevel)
+  local xPos, yPos = engine.toIso(xPos, yPos)
+  love.graphics.draw(
+    texture,
+    xPos+xOff,
+    yPos+yOff,
+    0,
+    zoom,
+    zoom,
+    texture:getWidth()/2,
+    texture:getHeight()/2
+  )
+end
+
+local highlightTexture = love.graphics.newImage("props/highlight.png")
 
 function engine.drawPath(xOff, yOff, zoom, from, to)
   local path = engine.getTargetPath(from, to)
+  local texture = highlightTexture
 
   for i, node in ipairs(path) do
     local mapPosition = node.position
     if mapPosition then
-      local xPos = mapPosition.x * (tileWidth*zoomLevel)
-      local yPos = mapPosition.y * (tileWidth*zoomLevel)
+      local xPos = mapPosition.x * (tileWidth * zoom)
+      local yPos = mapPosition.y * (tileWidth * zoom)
       local xPos, yPos = engine.toIso(xPos, yPos)
-      engine.drawTexture(texture, xPos, yPos, xOff, yOff, size)
+      engine.drawTexture(texture, xPos, yPos, xOff, yOff, zoom)
     end
   end
 
 end
 
 function engine.drawTexture(texture, xPos, yPos, xOff, yOff, size)
-  love.graphics.draw(texture,xPos+xOff, yPos+yOff, 0, size, size, texture:getWidth()/2, texture:getHeight()/2 )
+  love.graphics.draw(texture,xPos+xOff, yPos+yOff, 0, size, size, tileWidth, tileHeight)
 end
 
 local function getPosition(x, y)
@@ -659,4 +687,4 @@ function engine.removeObject(x, y)
   end
 end
 
-return engine 
+return engine
