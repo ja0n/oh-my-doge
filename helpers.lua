@@ -1,4 +1,16 @@
 
+function split(value)
+  return string.split_(value, "|")
+end
+
+function fmap(func, array)
+  local new_array = {}
+  for i,v in ipairs(array) do
+    new_array[i] = func(v)
+  end
+  return new_array
+end
+
 --This next function had the underscore added to avoid collisions with
 --any other possible split function the user may want to use.
 function string:split_(sSeparator, nMax, bRegexp)

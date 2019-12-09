@@ -29,6 +29,7 @@ function love.load()
 	--Generate map from JSON file (loads assets and creates tables)
 	engine.generatePlayField()
 	player = engine.players[1]
+  print(player)
 	engine.pushAction(player, 'right')
 end
 

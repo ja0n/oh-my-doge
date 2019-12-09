@@ -74,8 +74,8 @@
 
   "general": [
     {
-      "name": "Map name",
-      "version": "string with map version",
+      "name": "Test map",
+      "version": "0.1",
       "lighting": "255|255|255"
     }
   ]
