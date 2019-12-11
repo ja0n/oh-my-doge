@@ -1,3 +1,7 @@
+function lerp(a, b, rate)
+  local result = (1-rate)*a + rate*b
+  return result
+end
 
 function split(value)
   return string.split_(value, "|")
@@ -14,28 +18,28 @@ end
 --This next function had the underscore added to avoid collisions with
 --any other possible split function the user may want to use.
 function string:split_(sSeparator, nMax, bRegexp)
-	assert(sSeparator ~= '')
-	assert(nMax == nil or nMax >= 1)
+  assert(sSeparator ~= '')
+  assert(nMax == nil or nMax >= 1)
 
-	local aRecord = {}
+  local aRecord = {}
 
-	if self:len() > 0 then
-		local bPlain = not bRegexp
-		nMax = nMax or -1
+  if self:len() > 0 then
+    local bPlain = not bRegexp
+    nMax = nMax or -1
 
-		local nField, nStart = 1, 1
-		local nFirst,nLast = self:find(sSeparator, nStart, bPlain)
-		while nFirst and nMax ~= 0 do
-			aRecord[nField] = self:sub(nStart, nFirst-1)
-			nField = nField+1
-			nStart = nLast+1
-			nFirst,nLast = self:find(sSeparator, nStart, bPlain)
-			nMax = nMax-1
-		end
-		aRecord[nField] = self:sub(nStart)
-	end
+    local nField, nStart = 1, 1
+    local nFirst,nLast = self:find(sSeparator, nStart, bPlain)
+    while nFirst and nMax ~= 0 do
+      aRecord[nField] = self:sub(nStart, nFirst-1)
+      nField = nField+1
+      nStart = nLast+1
+      nFirst,nLast = self:find(sSeparator, nStart, bPlain)
+      nMax = nMax-1
+    end
+    aRecord[nField] = self:sub(nStart)
+  end
 
-	return aRecord
+  return aRecord
 --Credit goes to JoanOrdinas @ lua-users.org
 end
 
@@ -60,8 +64,8 @@ function spairs(t, order)
             return keys[i], t[keys[i]]
         end
     end
-		--https://stackoverflow.com/questions/15706270/sort-a-table-in-lua
-		--Function "spairs" by Michal Kottman.
+    --https://stackoverflow.com/questions/15706270/sort-a-table-in-lua
+    --Function "spairs" by Michal Kottman.
 end
 
 -- Collision detection function;

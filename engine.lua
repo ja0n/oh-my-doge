@@ -43,8 +43,6 @@ function engine.drawGround(xOff, yOff, size)
     255
   )
 
-  love.graphics.print("X: "..math.floor(x).." Y: "..math.floor(y), 0, 64)
-  love.graphics.print("tileWidth: "..engine.map.tileWidth.." tileHeight"..engine.map.tileHeight, 200, 164)
   --Draw the flat ground layer for the map, without elevation or props.
   engine.mouseTarget = nil
   for i in ipairs(engine.map.positions) do

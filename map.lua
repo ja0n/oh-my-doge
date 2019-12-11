@@ -83,19 +83,19 @@ function parseMap(engine, mapData)
   --TODO: the following should be done on a separate thread. I have not tested the performance of the following lines on a colossal engine.
   timerStart = love.timer.getTime()
   for i, groundTexture in ipairs(textures) do
-    for colunas in ipairs(mapData.data) do
-      for linhas in ipairs(mapData.data[colunas]) do
-        for i, properties in ipairs(mapData.data[colunas][linhas]) do
+    for columns in ipairs(mapData.data) do
+      for rows in ipairs(mapData.data[columns]) do
+        for i, properties in ipairs(mapData.data[columns][rows]) do
 
           --Add ground texture if mnemonic is found
           if properties == groundTexture.mnemonic then
-            local xPos = linhas
-            local yPos = colunas
-            if positions[colunas] == nil then
-              positions[colunas] = {}
+            local xPos = rows
+            local yPos = columns
+            if positions[columns] == nil then
+              positions[columns] = {}
             end
-            if positions[colunas][linhas] == nil then
-              positions[colunas][linhas] = {}
+            if positions[columns][rows] == nil then
+              positions[columns][rows] = {}
             end
             local position = {
               texture = groundTexture.image,
@@ -103,7 +103,7 @@ function parseMap(engine, mapData)
               y=yPos,
               objects={}
             }
-            table.insert(positions[colunas][linhas], position)
+            table.insert(positions[columns][rows], position)
           end
 
         end
@@ -116,26 +116,26 @@ function parseMap(engine, mapData)
   for i, prop in ipairs(props) do --For each object
 
     --Loop through  terrain information
-    for colunas in ipairs(mapData.data) do
-      for linhas in ipairs(mapData.data[colunas]) do
+    for columns in ipairs(mapData.data) do
+      for rows in ipairs(mapData.data[columns]) do
 
         --Iterate over the objects in a given 2D position
-        for i, objects in ipairs(mapData.data[colunas][linhas]) do
+        for i, objects in ipairs(mapData.data[columns][rows]) do
           if objects == prop.mnemonic then
-            --table.insert(positions[colunas][linhas], {texture=prop.image, x=linhas, y=colunas, offX=prop.origins[1], offY=prop.origins[2]})
+            --table.insert(positions[columns][rows], {texture=prop.image, x=rows, y=columns, offX=prop.origins[1], offY=prop.origins[2]})
 
             --VERY IMPORTANT NOTE ABOUT THE FOLLOWING LINES
             --these control the ZBuffer in some *dark manner*. IT WORKS. I **really** have to figure out why.
-            pX, pY = engine.toIso(linhas, colunas)
+            pX, pY = engine.toIso(rows, columns)
 
-            colX = linhas * (tileWidth*zoomLevel)
-            colY = colunas * (tileWidth*zoomLevel)
+            colX = rows * (tileWidth*zoomLevel)
+            colY = columns * (tileWidth*zoomLevel)
             colX, colY = engine.toIso(colX, colY)
             local propField = {
               mnemonic=prop.mnemonic,
               texture=prop.image,
-              x=linhas,
-              y=colunas,
+              x=rows,
+              y=columns,
               offX=prop.origins[1],
               offY=prop.origins[2],
               mapY = pY,
@@ -149,11 +149,11 @@ function parseMap(engine, mapData)
             -- local propField = [];
             table.insert(propFields, propField)
 
-      table.insert(positions[colunas][linhas][1].objects, propField)
+      table.insert(positions[columns][rows][1].objects, propField)
 
       for i,v in ipairs(prop.occupy or {}) do
-        local x = colunas + v[2]
-        local y = linhas + v[1]
+        local x = columns + v[2]
+        local y = rows + v[1]
         if x < 8 and y < 8 then
           table.insert(positions[x][y][1].objects, propField)
         end
@@ -242,12 +242,12 @@ end
   print("Decode loop took "..((timerEnd-timerStart)*100).."ms")
 
 
-	return {
-		textures = textures,
-		positions = positions,
-		props = props,
-		lighting = lighting,
-		propFields = propFields,
+  return {
+    textures = textures,
+    positions = positions,
+    props = props,
+    lighting = lighting,
+    propFields = propFields,
     objectListSize = objectListSize,
     players = players,
     tileWidth = tileWidth,
@@ -255,5 +255,5 @@ end
     zoomLevel = zoomLevel,
     widthInTiles = widthInTiles,
     heightInTiles = heightInTiles,
-	}
+  }
 end
