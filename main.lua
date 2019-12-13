@@ -100,37 +100,39 @@ end
 
 local texture = love.graphics.newImage("props/blood.png")
 function love.mousepressed(currentX, currentY, button, istouch, presses)
-  if button == 3 then
+  if button == 1 then
     lastPosX = currentX
     lastPosY = currentY
     isGrabbing = true
     love.mouse.setGrabbed(true)
   end
   if button == 1 then
-    if not engine.mouseTarget then return nil end
-
     if love.keyboard.isDown('lshift') then
       engine.insertNewObject(texture, engine.mouseTarget[1], engine.mouseTarget[2], 108, 59)
       print('mouseTarget:', engine.mouseTarget[2], engine.mouseTarget[1])
-    else
-      local path = engine.getTargetPath(player.position, engine.mouseTarget)
-      local player = engine.players[1]
-      for index, node in ipairs(path) do
-        print('direction', direction)
-        engine.pushAction(player, node.direction)
-      end
     end
   end
 end
 
 function love.mousereleased(currentX, currentY, button, istouch, presses)
-  if isGrabbing and button == 3 then
+  if isGrabbing and button == 1 then
     x = x + (currentX - lastPosX)
     y = y + (currentY - lastPosY)
 
     love.graphics.print("vX: "..x.." vY: "..y, 150, 78)
     isGrabbing = false
     love.mouse.setGrabbed(false)
+  end
+
+  if not isGrabbing and button == 2 then
+    if not engine.mouseTarget then return nil end
+
+    local path = engine.getTargetPath(player.position, engine.mouseTarget)
+    local player = engine.players[1]
+    for index, node in ipairs(path) do
+      print('direction', direction)
+      engine.pushAction(player, node.direction)
+    end
   end
 end
 
