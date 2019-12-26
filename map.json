@@ -3,7 +3,7 @@
     {
       "file": "ground.png",
       "mnemonic": "ground",
-      "offset": "6|6"
+      "offset": "7|19"
     }
   ],
   "players": [
@@ -41,7 +41,7 @@
     {
         "file": "highlight.png",
         "mnemonic": "highlight",
-        "origin": "0|0"
+        "origin": "-7|-19"
     },
     {
         "file": "blood.png",

@@ -39,21 +39,26 @@ function parseMap(engine, mapData)
     print(texture.file)
     print(texture.mnemonic)
     print("---")
+    offset = string.split_(texture.offset, "|")
+    image = love.graphics.newImage("textures/"..texture.file)
+    tileWidth = (image:getWidth() - offset[1])/2
+    tileHeight = (image:getHeight() - offset[2])/2
 
     table.insert(textures, {
       file = texture.file,
       mnemonic = texture.mnemonic,
-      offset = texture.offset,
-      image = love.graphics.newImage("textures/"..texture.file)
+      offset = offset,
+      image = image,
+      tileWidth = tileWidth,
+      tileHeight = tileHeight,
     })
 
   end
 
   --Get ground texture dimensions
   mainTexture = textures[1]
-  offsets = string.split_(mainTexture.offset, "|")
-  tileWidth = (mainTexture.image:getWidth() - offsets[1])/2
-  tileHeight = (mainTexture.image:getHeight() - offsets[2])/2
+  tileWidth = mainTexture.tileWidth
+  tileHeight = mainTexture.tileHeight
 
   print("Playfield props: =-=-=-=-=-=-=-=")
   if mapData.props ~= nil then

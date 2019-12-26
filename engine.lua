@@ -30,11 +30,11 @@ function engine.generatePlayField()
     -- engine.players = engine.map.players
 end
 
-function engine.drawGround(xOff, yOff, size)
+function engine.drawGround(xOff, yOff, zoom)
   assert(xOff)
   assert(yOff)
-  assert(size)
-  engine.map.zoomLevel = size
+  assert(zoom)
+
   --Apply lighting
   love.graphics.setColor(
     tonumber(engine.map.lighting[1]),
@@ -45,28 +45,29 @@ function engine.drawGround(xOff, yOff, size)
 
   --Draw the flat ground layer for the map, without elevation or props.
   engine.mouseTarget = nil
-  for i in ipairs(engine.map.positions) do
-    for j=1,#engine.map.positions[i], 1 do
-      local xPos = engine.map.positions[i][j][1].x * (engine.map.tileWidth * engine.map.zoomLevel)
-      local yPos = engine.map.positions[i][j][1].y * (engine.map.tileWidth * engine.map.zoomLevel)
-      local xPos, yPos = engine.toIso(xPos, yPos)
+  engine.map.zoomLevel = zoom
 
-      local texture = engine.map.positions[i][j][1].texture
-      engine.drawTexture(texture, xPos, yPos, xOff, yOff, size)
+  for i in ipairs(engine.map.positions) do
+    for j=1, #engine.map.positions[i], 1 do
+      local position = engine.map.positions[i][j][1]
+      local texture = position.texture
+
+      engine.drawTextureToPosition(xOff, yOff, zoom, j, i, texture)
 
       local x, y = love.mouse.getPosition()
 
-      xPos = xPos + xOff - texture:getWidth()/2 * size
-      yPos = yPos + yOff - texture:getHeight()/2 * size
+      xOfff = xOff * zoom
+      yOfff = yOff * zoom
 
-      local isTarget = (x >= xPos and x <= xPos + texture:getWidth() * size )
-        and (y >= yPos and y <= yPos + texture:getHeight() * size)
-      if isTarget then
+      local mapX, mapY = engine.screenToMap(x, y)
+      local mapX, mapY = engine.screenToMap(x - xOfff, y - yOfff)
+
+      if (mapX + 1) == j and (mapY + 1) == i then
+        print('mouseTarget:', mapX, mapY, i, j,  x, y )
         engine.mouseTarget = {i, j}
       end
     end
   end
-
 end
 
 local bloodTexture = love.graphics.newImage("props/blood.png")
@@ -93,9 +94,13 @@ end
 
 function engine.drawTextureToPosition(xOff, yOff, zoom, x, y, texture)
   local mapPosition = engine.map.positions[y][x][1]
-  local xPos = mapPosition.x * (engine.map.tileWidth*engine.map.zoomLevel)
-  local yPos = mapPosition.y * (engine.map.tileWidth*engine.map.zoomLevel)
-  local xPos, yPos = engine.toIso(xPos, yPos)
+  local tileWidth = engine.map.tileWidth * zoom
+  local tileHeight = engine.map.tileHeight * zoom
+  x = x - 1
+  y = y - 1
+  local xPos = (x - y) * tileWidth
+  local yPos = (x + y) * tileHeight
+  -- local xPos, yPos = engine.toIso(xPos, yPos)
   love.graphics.draw(
     texture,
     xPos+xOff,
@@ -103,9 +108,13 @@ function engine.drawTextureToPosition(xOff, yOff, zoom, x, y, texture)
     0,
     zoom,
     zoom,
-    texture:getWidth()/2,
-    texture:getHeight()/2
+    tileWidth,
+    0
   )
+end
+
+function engine.drawTexture(texture, xPos, yPos, xOff, yOff, size)
+  love.graphics.draw(texture, xPos+xOff, yPos+yOff, 0, size, size, engine.map.tileWidth, engine.map.tileHeight)
 end
 
 local highlightTexture = love.graphics.newImage("props/highlight.png")
@@ -117,17 +126,12 @@ function engine.drawPath(xOff, yOff, zoom, from, to)
   for i, node in ipairs(path) do
     local mapPosition = node.position
     if mapPosition then
-      local xPos = mapPosition.x * (engine.map.tileWidth * zoom)
-      local yPos = mapPosition.y * (engine.map.tileWidth * zoom)
-      local xPos, yPos = engine.toIso(xPos, yPos)
-      engine.drawTexture(texture, xPos, yPos, xOff, yOff, zoom)
+      local x = mapPosition.x
+      local y = mapPosition.y
+      engine.drawTextureToPosition(xOff, yOff, zoom, x, y, texture)
     end
   end
 
-end
-
-function engine.drawTexture(texture, xPos, yPos, xOff, yOff, size)
-  love.graphics.draw(texture, xPos+xOff, yPos+yOff, 0, size, size, engine.map.tileWidth, engine.map.tileHeight)
 end
 
 local function getPosition(x, y)
@@ -399,6 +403,17 @@ function engine.toIso(x, y)
   newX = x - y
   newY = (x + y)/2
   return newX, newY
+end
+
+function engine.screenToMap(x, y)
+  tileWidth =  engine.map.tileWidth
+  tileHeight =  engine.map.tileHeight
+  mapX = (x / tileWidth + y / tileHeight)/2
+  mapY = (y / tileHeight - x / tileWidth)/2
+  mapX = math.floor(mapX)
+  mapY = math.floor(mapY)
+
+  return mapX, mapY
 end
 
 function engine.toCartesian(x, y)
