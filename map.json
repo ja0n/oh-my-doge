@@ -3,7 +3,7 @@
     {
       "file": "ground.png",
       "mnemonic": "ground",
-      "offset": "7|19"
+      "offset": "6|18"
     }
   ],
   "players": [
@@ -11,7 +11,7 @@
         "file": "blood.png",
         "sprite": "dog.png",
         "mnemonic": "player",
-        "origin": "0|0",
+        "origin": "20|0",
         "position": "1|1"
     },
     {
@@ -46,17 +46,17 @@
     {
         "file": "blood.png",
         "mnemonic": "blood",
-        "origin": "108|59"
+        "origin": "0|0"
     },
     {
         "file": "ground_crack.png",
         "mnemonic": "ground_crack",
-        "origin": "108|59"
+        "origin": "0|0"
     },
     {
         "file": "wall-1.png",
         "mnemonic": "wall-1",
-        "origin": "28|212",
+        "origin": "-114|-186",
         "occupy": ["0|0","0|-1"]
     }
 ],
