@@ -1,4 +1,5 @@
 engine = require ('engine')
+render = require('render')
 require('helpers')
 isGrabbing = false
 math.randomseed( os.time() )
@@ -13,6 +14,13 @@ local player2 = nil
 local player3 = nil
 local actions = {'up', 'down', 'left', 'right'}
 
+function resetCamera()
+  x = 0
+  y = 0
+  vx = 0
+  vy = 0
+end
+
 function love.load()
   --Variables
   x = 330
@@ -21,6 +29,8 @@ function love.load()
   vy = 180
   zoomL = 1
   zoom = 1
+
+  resetCamera()
 
   love.window.setTitle('Where is my Friend')
 
@@ -48,7 +58,7 @@ function love.update(dt)
       engine.pushAction(player, actions[math.random(#actions)])
     end
     i = i + 1
-  until i > table.getn(engine.players)
+  until i > #engine.players
 
   zoomL = lerp(zoomL, zoom, 0.05*(dt*300))
 
@@ -61,10 +71,7 @@ function love.update(dt)
 end
 
 function love.draw()
-  engine.drawGround(vx, vy, zoomL)
-  engine.drawPlayers(vx, vy, zoomL)
-  engine.drawMouseTarget(vx, vy, zoomL)
-  engine.drawObjects(vx, vy, zoomL)
+  render.update(vx, vy, zoomL)
 
   printDebug(vx, vy)
 end
@@ -141,13 +148,13 @@ function printDebug(vx, vy)
   info = love.graphics.getStats()
   love.graphics.print("FPS: "..love.timer.getFPS())
   love.graphics.print("Draw calls: "..info.drawcalls, 0, 12)
-  love.graphics.print("Texture memory: "..((info.texturememory/1024)/1024).."mb", 0, 24)
+  love.graphics.print(string.format("Texture memory: %.2f mb", ((info.texturememory/1024)/1024)), 0, 24)
   love.graphics.print("Zoom level: "..zoom, 0, 36)
   love.graphics.print("Is grabbing: "..tostring(isGrabbing), 0, 48)
   love.graphics.print("X: "..math.floor(x).." Y: "..math.floor(y), 0, 64)
   love.graphics.print("vX: "..math.floor(vx).." vY: "..math.floor(vy), 0, 78)
 
-  love.graphics.print("posX: "..player.position[1], 0, 0)
+  love.graphics.print("posX: "..player.position[1], 0, 100)
   love.graphics.print("posY: "..player.position[2], 0, 120)
   love.graphics.print("finX: "..player.final[1], 0, 140)
   love.graphics.print("finY: "..player.final[2], 0, 160)

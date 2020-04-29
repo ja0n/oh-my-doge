@@ -30,109 +30,26 @@ function engine.generatePlayField()
     -- engine.players = engine.map.players
 end
 
-function engine.drawGround(xOff, yOff, zoom)
-  assert(xOff)
-  assert(yOff)
-  assert(zoom)
+function engine.getMouseTarget(xOff, yOff, zoom)
+    local x, y = love.mouse.getPosition()
+    local mapX, mapY = engine.screenToMap(x, y, zoom)
+    x = x / zoom
+    y = y / zoom
+    -- x = x * zoom
+    -- y = y * zoom
+    xOff = xOff / zoom
+    yOff = yOff / zoom
+    local mapX, mapY = engine.screenToMap(x - xOff, y - yOff, zoom)
 
-  --Apply lighting
-  love.graphics.setColor(
-    tonumber(engine.map.lighting[1]),
-    tonumber(engine.map.lighting[2]),
-    tonumber(engine.map.lighting[3]),
-    255
-  )
-
-  --Draw the flat ground layer for the map, without elevation or props.
-  engine.mouseTarget = nil
-  engine.map.zoomLevel = zoom
-
-  for i in ipairs(engine.map.positions) do
-    for j=1, #engine.map.positions[i], 1 do
-      local position = engine.map.positions[i][j][1]
-      local texture = position.texture
-
-      engine.drawTextureToPosition(xOff, yOff, zoom, j, i, texture)
-
-      local x, y = love.mouse.getPosition()
-
-      xOfff = xOff * zoom
-      yOfff = yOff * zoom
-
-      local mapX, mapY = engine.screenToMap(x, y)
-      local mapX, mapY = engine.screenToMap(x - xOfff, y - yOfff)
-
-      if (mapX + 1) == j and (mapY + 1) == i then
-        print('mouseTarget:', mapX, mapY, i, j,  x, y )
-        engine.mouseTarget = {i, j}
-      end
-    end
-  end
+    -- if (mapX + 1) == j and (mapY + 1) == i then
+    --   print('mouseTarget:', mapX, mapY, i, j,  x, y )
+    -- end
+    engine.mouseTarget = {mapY + 1, mapX + 1}
+    return engine.mouseTarget
 end
 
 local bloodTexture = love.graphics.newImage("props/blood.png")
 
-function engine.drawMouseTarget(xOff, yOff, zoom)
-  local mouseTarget = engine.mouseTarget
-  engine.map.zoomLevel = zoom
-
-  if not mouseTarget then
-    return nil
-  end
-
-  if love.keyboard.isDown('lshift') then
-    local texture = bloodTexture
-    local y = mouseTarget[1]
-    local x = mouseTarget[2]
-    print('mouseTarget:', y, x)
-  else
-    local player = engine.players[1]
-    engine.drawPath(xOff, yOff, zoom, player.final, mouseTarget)
-  end
-
-end
-
-function engine.drawTextureToPosition(xOff, yOff, zoom, x, y, texture)
-  local mapPosition = engine.map.positions[y][x][1]
-  local tileWidth = engine.map.tileWidth * zoom
-  local tileHeight = engine.map.tileHeight * zoom
-  x = x - 1
-  y = y - 1
-  local xPos = (x - y) * tileWidth
-  local yPos = (x + y) * tileHeight
-  -- local xPos, yPos = engine.toIso(xPos, yPos)
-  love.graphics.draw(
-    texture,
-    xPos+xOff,
-    yPos+yOff,
-    0,
-    zoom,
-    zoom,
-    tileWidth,
-    0
-  )
-end
-
-function engine.drawTexture(texture, xPos, yPos, xOff, yOff, size)
-  love.graphics.draw(texture, xPos+xOff, yPos+yOff, 0, size, size, engine.map.tileWidth, engine.map.tileHeight)
-end
-
-local highlightTexture = love.graphics.newImage("props/highlight.png")
-
-function engine.drawPath(xOff, yOff, zoom, from, to)
-  local path = engine.getTargetPath(from, to)
-  local texture = highlightTexture
-
-  for i, node in ipairs(path) do
-    local mapPosition = node.position
-    if mapPosition then
-      local x = mapPosition.x
-      local y = mapPosition.y
-      engine.drawTextureToPosition(xOff, yOff, zoom, x, y, texture)
-    end
-  end
-
-end
 
 local function getPosition(x, y)
   if y < 1 or y > #engine.map.positions then return nil end
@@ -185,31 +102,6 @@ function engine.getTargetPath(source, target)
 		engine.getNeighbors,
 		function (current) return current == target end
 	)
-end
-
-function engine.drawPlayers(xOff, yOff, size)
-  assert(xOff)
-  assert(yOff)
-  assert(size)
-  engine.map.zoomLevel = size
-
-  xOff = xOff
-  local player = nil
-  for i,player in ipairs(engine.players) do
-    local x = player.position[1]
-    local y = player.position[2]
-    local xPos = x * (engine.map.tileWidth*engine.map.zoomLevel) + x
-    local yPos = y * (engine.map.tileWidth*engine.map.zoomLevel) + y
-    local xPos, yPos = engine.toIso(xPos, yPos)
-
-    -- v.colX = xPos-v.offX
-    -- v.colY = yPos-v.offY
-    if player.currentAnimation then
-      player.currentAnimation:draw(player.sprite,xPos+xOff, yPos+yOff, 0, size, size, player.image:getWidth()/2, player.image:getHeight()/2 )
-    else
-      love.graphics.draw(player.image,xPos+xOff, yPos+yOff, 0, size, size, player.image:getWidth()/2, player.image:getHeight()/2 )
-    end
-  end
 end
 
 
@@ -324,53 +216,6 @@ function engine.runAction(dt)
   end
 end
 
-function engine.drawObjects(xOff, yOff, size)
-  --Figure out dynamic object occlusion
-  if #engine.map.propFields > engine.map.objectListSize then
-    for i=engine.map.objectListSize + 1, #engine.map.propFields do
-      for j=1, engine.map.objectListSize do
-        if engine.map.propFields[i].y < engine.map.propFields[j].y and
-          engine.map.propFields[i].x < engine.map.propFields[j].x and
-          CheckCollision(
-            engine.map.propFields[j].colX,
-            engine.map.propFields[j].colY,
-            engine.map.propFields[j].width,
-            engine.map.propFields[j].height,
-            engine.map.propFields[i].colX,
-            engine.map.propFields[i].colY,
-            engine.map.propFields[i].width,
-            engine.map.propFields[i].height
-          )
-          then
-          engine.map.propFields[j].alpha = true
-        end
-      end
-    end
-  end
-
-  --Sort ZBuffer and draw objects.
-  for k,v in spairs(engine.map.propFields, function(t,a,b) return t[b].mapY > t[a].mapY end) do
-    local xPos = v.x * (engine.map.tileWidth*engine.map.zoomLevel)
-    local yPos = v.y * (engine.map.tileWidth*engine.map.zoomLevel)
-    local xPos, yPos = engine.toIso(xPos, yPos)
-
-    if v.alpha then
-      love.graphics.setColor(255, 255, 255, 90)
-    else
-      love.graphics.setColor(255, 255, 255, 255)
-    end
-    love.graphics.draw(v.texture, xPos+xOff, yPos+yOff, 0, size, size, v.offX, v.offY)
-    -- engine.drawTexture(v.texture, xPos, yPos, xOff + v.offX, yOff + v.offY, size)
-
-    --Update values in order to minimize for loops
-    v.alpha = false
-    v.colX = xPos-v.offX
-    v.colY = yPos-v.offY
-    v.mapX, v.mapY = engine.toIso(v.x, v.y)
-  end
-end
-
-
 function engine.getTile2DCoordinates(i, j)
   local xP = engine.map.positions[i][j][1].x * (engine.map.tileWidth*engine.map.zoomLevel)
   local yP = engine.map.positions[i][j][1].y * (engine.map.tileWidth*engine.map.zoomLevel)
@@ -400,14 +245,23 @@ function engine.toIso(x, y)
   assert(x, "Position X is nil!")
   assert(y, "Position Y is nil!")
 
+  -- local xPos = (x - y) * tileWidth
+  -- local yPos = (x + y) * tileHeight
   newX = x - y
   newY = (x + y)/2
   return newX, newY
 end
 
-function engine.screenToMap(x, y)
-  tileWidth =  engine.map.tileWidth
-  tileHeight =  engine.map.tileHeight
+function engine.getTileDimensions()
+  tileWidth = engine.map.tileWidth
+  tileHeight = engine.map.tileHeight
+  return tileWidth, tileHeight
+end
+
+function engine.screenToMap(x, y, size)
+  tileWidth, tileHeight = engine.getTileDimensions()
+  tileWidth = tileWidth / size
+  tileHeight = tileHeight / size
   mapX = (x / tileWidth + y / tileHeight)/2
   mapY = (y / tileHeight - x / tileWidth)/2
   mapX = math.floor(mapX)
